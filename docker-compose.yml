@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user_cinelog
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: cinelog
+    ports:
+      - "5432:5432"
