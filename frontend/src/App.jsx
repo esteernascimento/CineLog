@@ -6,28 +6,20 @@ function App() {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
 
-  // Função que envia os dados para o Backend
   const handleCadastro = async (e) => {
-    e.preventDefault(); // Evita que a página recarregue
-    
+    e.preventDefault();
     try {
-      // Usando a URL pública do seu Backend no Codespaces
+      // LEMBRE-SE: Use a sua URL pública do Codespaces aqui
       const response = await fetch('https://silver-train-6j7rx6q94x73r4q5-3001.app.github.dev/auth/signup', {
-        method: 'POST', // <-- Correção principal aqui!
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nome, email, senha }),
       });
 
       const data = await response.json();
-
       if (response.ok) {
-        alert(`Sucesso! Usuário ${data.nome} cadastrado no PostgreSQL.`);
-        // Limpa os campos da tela depois de cadastrar
-        setNome('');
-        setEmail('');
-        setSenha('');
+        alert(`🎬 Luz, câmera, ação! Bem-vindo, ${data.nome}`);
+        setNome(''); setEmail(''); setSenha('');
       } else {
         alert(`Erro: ${data.error}`);
       }
@@ -37,48 +29,48 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <h1>🎬 CineLog</h1>
-      <h2>Cadastro de Usuário</h2>
-      
-      <form onSubmit={handleCadastro}>
-        <div style={{ marginBottom: '10px' }}>
-          <input
-            type="text"
-            placeholder="Nome"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            required
-            style={{ padding: '8px', width: '200px' }}
-          />
-        </div>
+    <div className="container">
+      <div className="auth-card">
+        <div className="icon-header">🎬</div>
+        <h1>CineLog</h1>
+        <h2>Seu diário de entretenimento</h2>
         
-        <div style={{ marginBottom: '10px' }}>
-          <input
-            type="email"
-            placeholder="E-mail"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ padding: '8px', width: '200px' }}
-          />
-        </div>
-        
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="password"
-            placeholder="Senha"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            required
-            style={{ padding: '8px', width: '200px' }}
-          />
-        </div>
-        
-        <button type="submit" style={{ padding: '10px 20px', cursor: 'pointer' }}>
-          Registrar
-        </button>
-      </form>
+        <form onSubmit={handleCadastro}>
+          <div className="input-group">
+            <input
+              type="text"
+              placeholder="Nome de usuário"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div className="input-group">
+            <input
+              type="email"
+              placeholder="E-mail"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div className="input-group">
+            <input
+              type="password"
+              placeholder="Digite sua senha"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              required
+            />
+          </div>
+          
+          <button type="submit" className="btn-primary">
+            Cadastrar
+          </button>
+        </form>
+      </div>
     </div>
   )
 }
