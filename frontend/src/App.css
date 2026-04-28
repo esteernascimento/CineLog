@@ -102,3 +102,21 @@ input:focus {
 .btn-primary:active {
   transform: translateY(0);
 }
+
+.btn-secondary {
+  margin-top: 12px;
+  background-color: transparent;
+  border: 1px solid #ff2d55;
+  color: #ff2d55;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.btn-secondary:hover {
+  background-color: #ff2d55;
+  color: white;
+}

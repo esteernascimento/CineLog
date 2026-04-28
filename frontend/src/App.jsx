@@ -1,32 +1,92 @@
 import { useState } from 'react'
+import Login from './paginas/Login'
+import Home from './paginas/Home'
 import './App.css'
 
 function App() {
+  const [tela, setTela] = useState('cadastro')
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+  const [usuarioLogado, setUsuarioLogado] = useState('')
+
+
+  //mudar url codespace
+ const BACKEND_URL = 'https://orange-eureka-v6q66pwp67grfp75g-3001.app.github.dev'
 
   const handleCadastro = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
+
     try {
-      // LEMBRE-SE: Use a sua URL pública do Codespaces aqui
-      const response = await fetch('https://silver-train-6j7rx6q94x73r4q5-3001.app.github.dev/auth/signup', {
+      const response = await fetch(`${BACKEND_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nome, email, senha }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
+
       if (response.ok) {
-        alert(`🎬 Luz, câmera, ação! Bem-vindo, ${data.nome}`);
-        setNome(''); setEmail(''); setSenha('');
+        alert(`Cadastro realizado com sucesso, ${data.nome}. Faça login agora.`)
+        setNome('')
+        setEmail('')
+        setSenha('')
+        setTela('login')
       } else {
-        alert(`Erro: ${data.error}`);
+        alert(`Erro: ${data.error}`)
       }
     } catch (error) {
-      alert('Erro de conexão. O servidor Backend está rodando?');
+      alert(`Erro de conexão: ${error.message}`)
     }
-  };
+  }
+
+  const handleLogin = async (e) => {
+    e.preventDefault()
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        alert('Login realizado com sucesso')
+        setUsuarioLogado(data.user)
+        setEmail('')
+        setSenha('')
+        setTela('home')
+      } else {
+        alert(`Erro: ${data.error}`)
+      }
+    } catch (error) {
+      alert(`Erro de conexão: ${error.message}`)
+    }
+  }
+
+  if (tela === 'login') {
+    return (
+      <Login
+        onLogin={handleLogin}
+        mudarTela={setTela}
+        email={email}
+        setEmail={setEmail}
+        senha={senha}
+        setSenha={setSenha}
+      />
+    )
+  }
+
+  if (tela === 'home') {
+    return (
+      <Home
+        usuarioLogado={usuarioLogado}
+        setTela={setTela}
+      />
+    )
+  }
 
   return (
     <div className="container">
@@ -34,7 +94,7 @@ function App() {
         <div className="icon-header">🎬</div>
         <h1>CineLog</h1>
         <h2>Seu diário de entretenimento</h2>
-        
+
         <form onSubmit={handleCadastro}>
           <div className="input-group">
             <input
@@ -45,7 +105,7 @@ function App() {
               required
             />
           </div>
-          
+
           <div className="input-group">
             <input
               type="email"
@@ -55,7 +115,7 @@ function App() {
               required
             />
           </div>
-          
+
           <div className="input-group">
             <input
               type="password"
@@ -65,11 +125,15 @@ function App() {
               required
             />
           </div>
-          
+
           <button type="submit" className="btn-primary">
             Cadastrar
           </button>
         </form>
+
+        <button onClick={() => setTela('login')} className="btn-secondary">
+          Já tenho conta
+        </button>
       </div>
     </div>
   )
