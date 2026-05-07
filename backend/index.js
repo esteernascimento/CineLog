@@ -69,10 +69,11 @@ app.post('/auth/login', async (req, res) => {
       const valid = await bcrypt.compare(senha, result.rows[0].senha);
 
       if (valid) {
-        return res.json({
-          msg: 'Logado!',
-          user: result.rows[0].nome
-        });
+       return res.json({
+       msg: 'Logado!',
+       user: result.rows[0].nome,
+       usuarioId: result.rows[0].id
+});
       }
     }
 
@@ -82,7 +83,43 @@ app.post('/auth/login', async (req, res) => {
     res.status(500).json({ error: 'Erro no login' });
   }
 });
+app.post('/avaliacoes', async (req, res) => {
+  const { usuarioId, conteudoId, tituloConteudo, tipo, nota, comentario } = req.body;
 
+  try {
+    const result = await pool.query(
+      `INSERT INTO avaliacoes 
+       (usuario_id, conteudo_id, titulo_conteudo, tipo, nota, comentario)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [usuarioId, conteudoId, tituloConteudo, tipo, nota, comentario]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Erro ao salvar avaliação:', err);
+    res.status(500).json({ error: 'Erro ao salvar avaliação' });
+  }
+});
+
+app.get('/avaliacoes/:usuarioId', async (req, res) => {
+  const { usuarioId } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT id, titulo_conteudo, tipo, nota, comentario, criado_em
+       FROM avaliacoes
+       WHERE usuario_id = $1
+       ORDER BY criado_em DESC`,
+      [usuarioId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar avaliações:', err);
+    res.status(500).json({ error: 'Erro ao buscar avaliações' });
+  }
+});
 app.listen(3001, '0.0.0.0', () => {
   console.log('Backend rodando na porta 3001');
 });

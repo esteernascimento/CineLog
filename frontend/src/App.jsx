@@ -1,18 +1,25 @@
 import { useState } from 'react'
 import Login from './paginas/Login'
 import Home from './paginas/Home'
+import Avaliacao from './paginas/Avaliacao'
+import Perfil from './paginas/Perfil'
 import './App.css'
 
 function App() {
   const [tela, setTela] = useState('cadastro')
+
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+
   const [usuarioLogado, setUsuarioLogado] = useState('')
+  const [usuarioId, setUsuarioId] = useState(null)
 
+  const [conteudoSelecionado, setConteudoSelecionado] =
+    useState(null)
 
-  //mudar url codespace
- const BACKEND_URL = 'https://orange-eureka-v6q66pwp67grfp75g-3001.app.github.dev'
+  const BACKEND_URL =
+    'https://orange-eureka-v6q66pwp67grfp75g-3001.app.github.dev'
 
   const handleCadastro = async (e) => {
     e.preventDefault()
@@ -20,14 +27,23 @@ function App() {
     try {
       const response = await fetch(`${BACKEND_URL}/auth/signup`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, email, senha }),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          nome,
+          email,
+          senha
+        })
       })
 
       const data = await response.json()
 
       if (response.ok) {
-        alert(`Cadastro realizado com sucesso, ${data.nome}. Faça login agora.`)
+        alert(
+          `Cadastro realizado com sucesso, ${data.nome}. Faça login agora.`
+        )
+
         setNome('')
         setEmail('')
         setSenha('')
@@ -46,17 +62,26 @@ function App() {
     try {
       const response = await fetch(`${BACKEND_URL}/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, senha }),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email,
+          senha
+        })
       })
 
       const data = await response.json()
 
       if (response.ok) {
         alert('Login realizado com sucesso')
+
         setUsuarioLogado(data.user)
+        setUsuarioId(data.usuarioId)
+
         setEmail('')
         setSenha('')
+
         setTela('home')
       } else {
         alert(`Erro: ${data.error}`)
@@ -83,6 +108,28 @@ function App() {
     return (
       <Home
         usuarioLogado={usuarioLogado}
+        usuarioId={usuarioId}
+        setTela={setTela}
+        setConteudoSelecionado={setConteudoSelecionado}
+      />
+    )
+  }
+
+  if (tela === 'avaliacao') {
+    return (
+      <Avaliacao
+        conteudoSelecionado={conteudoSelecionado}
+        usuarioId={usuarioId}
+        setTela={setTela}
+      />
+    )
+  }
+
+  if (tela === 'perfil') {
+    return (
+      <Perfil
+        usuarioLogado={usuarioLogado}
+        usuarioId={usuarioId}
         setTela={setTela}
       />
     )
@@ -92,7 +139,9 @@ function App() {
     <div className="container">
       <div className="auth-card">
         <div className="icon-header">🎬</div>
+
         <h1>CineLog</h1>
+
         <h2>Seu diário de entretenimento</h2>
 
         <form onSubmit={handleCadastro}>
@@ -131,7 +180,10 @@ function App() {
           </button>
         </form>
 
-        <button onClick={() => setTela('login')} className="btn-secondary">
+        <button
+          onClick={() => setTela('login')}
+          className="btn-secondary"
+        >
           Já tenho conta
         </button>
       </div>
