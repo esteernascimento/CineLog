@@ -8,6 +8,10 @@ require('dotenv').config();
 const conectarMongo = require('./mongo');
 const Conteudo = require('./models/Conteudo');
 
+// 1. IMPORTAÇÃO DO NEO4J AQUI NO TOPO
+// (Se você colocou o arquivo neo4j.js em uma pasta config, mude para './config/neo4j')
+const neo4jDriver = require('./neo4j'); 
+
 const app = express();
 
 app.use(cors());
@@ -73,7 +77,7 @@ app.post('/auth/login', async (req, res) => {
        msg: 'Logado!',
        user: result.rows[0].nome,
        usuarioId: result.rows[0].id
-});
+       });
       }
     }
 
@@ -83,10 +87,12 @@ app.post('/auth/login', async (req, res) => {
     res.status(500).json({ error: 'Erro no login' });
   }
 });
+
 app.post('/avaliacoes', async (req, res) => {
   const { usuarioId, conteudoId, tituloConteudo, tipo, nota, comentario } = req.body;
 
   try {
+    // 1. SALVA NO POSTGRES (Como você já tinha feito)
     const result = await pool.query(
       `INSERT INTO avaliacoes 
        (usuario_id, conteudo_id, titulo_conteudo, tipo, nota, comentario)
@@ -95,6 +101,33 @@ app.post('/avaliacoes', async (req, res) => {
       [usuarioId, conteudoId, tituloConteudo, tipo, nota, comentario]
     );
 
+    // 2. === NOVA PARTE: SALVANDO NO NEO4J ===
+    try {
+      const session = neo4jDriver.session();
+      
+      const query = `
+        MERGE (u:Usuario {id: $usuarioId})
+        MERGE (c:Conteudo {id: $conteudoId, titulo: $tituloConteudo})
+        MERGE (u)-[r:AVALIOU]->(c)
+        SET r.nota = $nota
+      `;
+      
+      await session.run(query, {
+        usuarioId: Number(usuarioId),
+        conteudoId: String(conteudoId),
+        tituloConteudo: String(tituloConteudo),
+        nota: Number(nota)
+      });
+      
+      await session.close();
+      console.log('✅ Avaliação espelhada no Neo4j com sucesso!');
+    } catch (neoError) {
+      // Se o Neo4j falhar, a gente só avisa no terminal, mas não quebra o site
+      console.error('❌ Erro ao salvar no Neo4j:', neoError);
+    }
+    // =====================================
+
+    // 3. RESPONDE AO FRONTEND
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('Erro ao salvar avaliação:', err);
@@ -120,6 +153,41 @@ app.get('/avaliacoes/:usuarioId', async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar avaliações' });
   }
 });
+// ==========================================
+// ROTA DE RECOMENDAÇÕES (NEO4J)
+// ==========================================
+app.get('/recomendacoes/:conteudoId', async (req, res) => {
+  const { conteudoId } = req.params;
+
+  const session = neo4jDriver.session();
+
+  try {
+    // A mágica do Cypher: Filtragem Colaborativa
+    const query = `
+      MATCH (c:Conteudo {id: $conteudoId})<-[:AVALIOU]-(outroUsuario:Usuario)-[:AVALIOU]->(recomendacao:Conteudo)
+      WHERE recomendacao.id <> $conteudoId
+      RETURN recomendacao.titulo AS titulo, count(outroUsuario) AS forca
+      ORDER BY forca DESC
+      LIMIT 3
+    `;
+
+    const result = await session.run(query, { conteudoId: String(conteudoId) });
+
+    // Transformando a resposta bizarra do Neo4j em um array simples para o Frontend
+    const recomendacoes = result.records.map(record => ({
+      titulo: record.get('titulo'),
+      forca: record.get('forca').toNumber() // Quantas pessoas em comum avaliaram
+    }));
+
+    res.json(recomendacoes);
+  } catch (error) {
+    console.error('Erro ao buscar recomendações no Neo4j:', error);
+    res.status(500).json({ error: 'Erro no motor de recomendações' });
+  } finally {
+    await session.close();
+  }
+});
+
 app.listen(3001, '0.0.0.0', () => {
   console.log('Backend rodando na porta 3001');
 });
