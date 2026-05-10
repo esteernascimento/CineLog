@@ -1,12 +1,16 @@
 function Login({ onLogin, mudarTela, email, setEmail, senha, setSenha }) {
   return (
-    <div className="container">
+    <div className="auth-page">
       <div className="auth-card">
-        <div className="icon-header">🎬</div>
-        <h1>CineLog</h1>
-        <h2>Entrar na sua conta</h2>
+        <div className="auth-header">
+          <span className="auth-icon">🎬</span>
+          <h1 className="logo">CineLog</h1>
+          <p className="auth-subtitle">Seu diário de entretenimento</p>
+        </div>
 
-        <form onSubmit={onLogin}>
+        <form onSubmit={onLogin} className="auth-form">
+          <h2>Entrar na sua conta</h2>
+          
           <div className="input-group">
             <input
               type="email"
@@ -27,14 +31,17 @@ function Login({ onLogin, mudarTela, email, setEmail, senha, setSenha }) {
             />
           </div>
 
-          <button type="submit" className="btn-primary">
+          <button type="submit" className="btn-primary full-width">
             Entrar
           </button>
         </form>
 
-        <button onClick={() => mudarTela('cadastro')} className="btn-secondary">
-          Não tenho conta
-        </button>
+        <div className="auth-footer">
+          <p>Ainda não faz parte?</p>
+          <button onClick={() => mudarTela('cadastro')} className="btn-link">
+            Criar conta agora
+          </button>
+        </div>
       </div>
     </div>
   )

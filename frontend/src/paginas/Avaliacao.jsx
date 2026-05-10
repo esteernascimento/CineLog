@@ -4,8 +4,7 @@ function Avaliacao({ conteudoSelecionado, usuarioId, setTela }) {
   const [notaSelecionada, setNotaSelecionada] = useState(0)
   const [comentario, setComentario] = useState('')
 
-  const BACKEND_URL =
-    'https://orange-eureka-v6q66pwp67grfp75g-3001.app.github.dev'
+  const BACKEND_URL = 'https://probable-barnacle-wwj9q6prvxrfv45p-3001.app.github.dev'
 
   const salvarAvaliacao = async () => {
     if (!notaSelecionada) {
@@ -16,9 +15,7 @@ function Avaliacao({ conteudoSelecionado, usuarioId, setTela }) {
     try {
       const response = await fetch(`${BACKEND_URL}/avaliacoes`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           usuarioId,
           conteudoId: conteudoSelecionado._id,
@@ -30,8 +27,8 @@ function Avaliacao({ conteudoSelecionado, usuarioId, setTela }) {
       })
 
       if (response.ok) {
-        alert('Avaliação salva com sucesso')
-        setTela('perfil')
+        alert('Avaliação salva com sucesso!')
+        setTela('home')
       } else {
         alert('Erro ao salvar avaliação')
       }
@@ -41,87 +38,66 @@ function Avaliacao({ conteudoSelecionado, usuarioId, setTela }) {
     }
   }
 
-  if (!conteudoSelecionado) {
-    return (
-      <div className="home-container">
-        <section className="home-card">
-          <p>Nenhum conteúdo selecionado.</p>
-
-          <button onClick={() => setTela('home')} className="btn-primary">
-            Voltar
-          </button>
-        </section>
-      </div>
-    )
-  }
+  if (!conteudoSelecionado) return null;
 
   return (
     <div className="home-container">
-      <header className="home-header">
-        <div>
-          <h1>CineLog</h1>
-          <p>Avaliação</p>
+      <header>
+        <div className="header-info">
+          <h1 className="logo" onClick={() => setTela('home')}>CineLog</h1>
+          <p className="subtitle">Avaliação de Conteúdo</p>
         </div>
-
-        <button onClick={() => setTela('home')} className="btn-sair">
-          Voltar
-        </button>
+        <button onClick={() => setTela('home')} className="btn-secondary">Voltar</button>
       </header>
 
-      <section className="home-card">
-        <h2>{conteudoSelecionado.titulo}</h2>
+      <main className="avaliacao-main">
+        <section className="detail-card">
+          
+          <div className="detail-header">
+             <span className="category-tag">{conteudoSelecionado.tipo} • {conteudoSelecionado.ano}</span>
+             <h2 className="detail-title">{conteudoSelecionado.titulo}</h2>
+             <p className="detail-genres">{conteudoSelecionado.generos?.join(' • ')}</p>
+          </div>
 
-        <p>
-          <strong>Tipo:</strong> {conteudoSelecionado.tipo}
-        </p>
+          <div className="sinopse-box">
+            <p>"{conteudoSelecionado.sinopse}"</p>
+          </div>
 
-        <p>
-          <strong>Ano:</strong> {conteudoSelecionado.ano}
-        </p>
+          <div className="rating-form">
+            <h3>Sua nota</h3>
+            <div className="stars-container">
+              {[1, 2, 3, 4, 5].map((nota) => (
+                <span
+                  key={nota}
+                  onClick={() => setNotaSelecionada(nota)}
+                  className={nota <= notaSelecionada ? 'star active' : 'star'}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
 
-        <p>
-          <strong>Gêneros:</strong>{' '}
-          {conteudoSelecionado.generos?.join(', ')}
-        </p>
+            <h3>O que você achou?</h3>
+            <textarea
+              placeholder="Escreva sua crítica aqui..."
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+              className="avaliacao-textarea"
+            />
 
-        <p className="sinopse">
-          {conteudoSelecionado.sinopse}
-        </p>
+            <button onClick={salvarAvaliacao} className="btn-primary full-width">
+              Confirmar Avaliação
+            </button>
+          </div>
+        </section>
 
-        <h3>Minha nota</h3>
-
-        <div className="stars">
-          {[1, 2, 3, 4, 5].map((nota) => (
-            <span
-              key={nota}
-              onClick={() => setNotaSelecionada(nota)}
-              className={
-                nota <= notaSelecionada ? 'star active' : 'star'
-              }
-            >
-              ★
-            </span>
-          ))}
-        </div>
-
-        <h3>Minha avaliação</h3>
-
-        <textarea
-          placeholder="Escreva o que você achou..."
-          value={comentario}
-          onChange={(e) => setComentario(e.target.value)}
-          className="comentario-input"
-        />
-
-        <button onClick={salvarAvaliacao} className="btn-primary">
-          Salvar avaliação
-        </button>
-
-        <div className="recomendacoes-box">
-          <h3>Recomendações</h3>
-          <p>As recomendações serão exibidas aqui futuramente.</p>
-        </div>
-      </section>
+        <section className="recommendations-placeholder">
+          <h3>Porque você viu {conteudoSelecionado.titulo}...</h3>
+          <div className="placeholder-box">
+            <p>🔮 <strong>Em breve:</strong> Recomendações personalizadas via Neo4j.</p>
+          </div>
+        </section>
+      </main>
     </div>
   )
 }

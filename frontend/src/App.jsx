@@ -7,43 +7,28 @@ import './App.css'
 
 function App() {
   const [tela, setTela] = useState('cadastro')
-
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
-
   const [usuarioLogado, setUsuarioLogado] = useState('')
   const [usuarioId, setUsuarioId] = useState(null)
+  const [conteudoSelecionado, setConteudoSelecionado] = useState(null)
 
-  const [conteudoSelecionado, setConteudoSelecionado] =
-    useState(null)
-
-  const BACKEND_URL =
-    'https://orange-eureka-v6q66pwp67grfp75g-3001.app.github.dev'
+  const BACKEND_URL = 'https://probable-barnacle-wwj9q6prvxrfv45p-3001.app.github.dev'
 
   const handleCadastro = async (e) => {
     e.preventDefault()
-
     try {
       const response = await fetch(`${BACKEND_URL}/auth/signup`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          nome,
-          email,
-          senha
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, email, senha })
       })
 
       const data = await response.json()
 
       if (response.ok) {
-        alert(
-          `Cadastro realizado com sucesso, ${data.nome}. Faça login agora.`
-        )
-
+        alert(`Cadastro realizado com sucesso, ${data.nome}. Faça login agora.`)
         setNome('')
         setEmail('')
         setSenha('')
@@ -58,30 +43,21 @@ function App() {
 
   const handleLogin = async (e) => {
     e.preventDefault()
-
     try {
       const response = await fetch(`${BACKEND_URL}/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email,
-          senha
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha })
       })
 
       const data = await response.json()
 
       if (response.ok) {
         alert('Login realizado com sucesso')
-
         setUsuarioLogado(data.user)
         setUsuarioId(data.usuarioId)
-
         setEmail('')
         setSenha('')
-
         setTela('home')
       } else {
         alert(`Erro: ${data.error}`)
@@ -91,6 +67,7 @@ function App() {
     }
   }
 
+  // Navegação entre telas
   if (tela === 'login') {
     return (
       <Login
@@ -135,16 +112,19 @@ function App() {
     )
   }
 
+  // Tela de Cadastro (Default)
   return (
-    <div className="container">
+    <div className="auth-page">
       <div className="auth-card">
-        <div className="icon-header">🎬</div>
+        <div className="auth-header">
+          <span className="auth-icon">🎬</span>
+          <h1 className="logo">CineLog</h1>
+          <p className="auth-subtitle">Seu diário de entretenimento</p>
+        </div>
 
-        <h1>CineLog</h1>
-
-        <h2>Seu diário de entretenimento</h2>
-
-        <form onSubmit={handleCadastro}>
+        <form onSubmit={handleCadastro} className="auth-form">
+          <h2>Crie sua conta</h2>
+          
           <div className="input-group">
             <input
               type="text"
@@ -168,24 +148,24 @@ function App() {
           <div className="input-group">
             <input
               type="password"
-              placeholder="Digite sua senha"
+              placeholder="Crie uma senha"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               required
             />
           </div>
 
-          <button type="submit" className="btn-primary">
+          <button type="submit" className="btn-primary full-width">
             Cadastrar
           </button>
         </form>
 
-        <button
-          onClick={() => setTela('login')}
-          className="btn-secondary"
-        >
-          Já tenho conta
-        </button>
+        <div className="auth-footer">
+          <p>Já possui uma conta?</p>
+          <button onClick={() => setTela('login')} className="btn-link">
+            Fazer Login
+          </button>
+        </div>
       </div>
     </div>
   )
