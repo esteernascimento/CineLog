@@ -1,5 +1,4 @@
 # 🎬 CineLog - Seu Diário de Entretenimento 
-wA4wgJwMb9GSnf3u
 
 > Projeto acadêmico focado em persistência poliglota e arquitetura de dados.
 
