@@ -11,17 +11,24 @@ O tema foi escolhido por permitir a exploração de diferentes estruturas de dad
 
 ## 🗄️ 2. Arquitetura do Backend e Justificativa dos Bancos de Dados
 
-O backend foi implementado utilizando **Node.js** com o framework **Express**, expondo uma API RESTful para comunicação com o frontend (React). A arquitetura utiliza o conceito de **Persistência Poliglota**, onde cada banco de dados foi escolhido especificamente para resolver o problema no qual é mais eficiente:
+### Definição de Implementação do Backend
+O backend foi desenvolvido utilizando **Node.js** com o framework **Express.js**, expondo uma API RESTful. Ele atua como o orquestrador central da arquitetura de Persistência Poliglota, recebendo as requisições do frontend (React) e gerenciando a comunicação com os três bancos de dados de forma simultânea através de bibliotecas nativas (`mongoose`, `pg` e `neo4j-driver`). 
 
-### 🟢 MongoDB (Orientado a Documentos)
+A implementação foca em dois pilares:
+1. **Segurança:** As rotas de autenticação implementam a biblioteca `bcrypt` para gerar o *hash* criptográfico das senhas em memória antes de persistir qualquer dado de usuário.
+2. **Integração de Dados (Join a nível de Aplicação):** Como os bancos de dados não se comunicam diretamente entre si, o backend assume o papel de "middleware de junção". Nas listagens do catálogo, por exemplo, a API busca os detalhes em documento no MongoDB e cruza em tempo real com a média matemática das notas calculadas pelo PostgreSQL, devolvendo um pacote de dados unificado para o cliente. As lógicas de recomendação disparam *queries* em Cypher diretamente do Node.js para o motor de grafos.
+
+### Justificativa dos Bancos de Dados
+
+#### 🟢 MongoDB (Orientado a Documentos)
 * **Uso no projeto:** Armazenamento do catálogo de filmes e séries.
 * **Justificativa:** Conteúdos de entretenimento possuem esquemas altamente mutáveis (um filme pode ter vários diretores, séries têm temporadas, gêneros variam). O formato JSON/BSON do MongoDB permite armazenar essas listas e arrays de forma natural e flexível, sem a necessidade de tabelas auxiliares (JOINs) complexas apenas para exibir o catálogo.
 
-### 🔵 PostgreSQL (Relacional)
+#### 🔵 PostgreSQL (Relacional)
 * **Uso no projeto:** Gerenciamento de usuários (autenticação) e histórico de avaliações.
 * **Justificativa:** Dados transacionais e de identidades exigem forte consistência (ACID) e integridade referencial. O PostgreSQL garante que não haverá e-mails duplicados no cadastro e que uma avaliação sempre estará vinculada a um usuário real, fornecendo segurança e padronização matemática para as transações principais da aplicação.
 
-### 🟣 Neo4j (Orientado a Grafos)
+#### 🟣 Neo4j (Orientado a Grafos)
 * **Uso no projeto:** Motor de Recomendações (Filtragem Colaborativa).
 * **Justificativa:** Para responder à pergunta *"Pessoas que gostaram deste filme também assistiram o quê?"*, bancos relacionais exigiriam queries lentas e custosas com múltiplos JOINs na mesma tabela. O Neo4j modela isso nativamente como nós (`Usuario` e `Conteudo`) conectados por arestas (`AVALIOU`). A travessia de grafos torna a recomendação extremamente rápida, independentemente do volume de dados.
 
@@ -48,7 +55,6 @@ Siga o passo a passo abaixo para rodar a aplicação localmente:
 Na raiz do projeto (onde está localizado o arquivo `docker-compose.yml`), abra o terminal e execute:
 ```bash
 docker-compose up -d
-
 ````
 ## Passo 2: Configurar o Backend
 Abra um terminal na pasta do backend:
@@ -59,7 +65,7 @@ npm install
 (Opcional) Crie um arquivo .env na pasta backend com suas credenciais de banco, caso não esteja usando as senhas padrão do docker-compose.
 Inicie o servidor Node.js:
 ```bash
-npm index.js
+node index.js
 # O servidor rodará na porta 3001
 ```
 ## Passo 3: Configurar o Frontend
