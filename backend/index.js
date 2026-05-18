@@ -29,10 +29,38 @@ app.get('/', (req, res) => {
 
 app.get('/conteudos', async (req, res) => {
   try {
+    // 1. Busca todos os conteúdos que estão cadastrados no MongoDB
     const conteudos = await Conteudo.find();
-    res.json(conteudos);
+
+    // 2. Busca a média das notas agrupadas por ID do conteúdo lá no PostgreSQL
+    const querySQL = `
+      SELECT conteudo_id, ROUND(AVG(nota), 1) as media 
+      FROM avaliacoes 
+      GROUP BY conteudo_id
+    `;
+    const resultadoPostgres = await pool.query(querySQL);
+
+    // Criamos um mapa { 'id_do_filme': '4.5' } para cruzar os dados de forma rápida
+    const mapaMedias = {};
+    resultadoPostgres.rows.forEach(row => {
+      mapaMedias[row.conteudo_id] = row.media;
+    });
+
+    // 3. Mescla os dados: injeta a média do Postgres dentro de cada item do Mongoose
+    const conteudosComNotasReais = conteudos.map(item => {
+      // Converte o documento do Mongoose para um objeto JavaScript comum
+      const itemObjeto = item.toObject();
+      
+      // Associa a média encontrada ou define '0.0' se o título não tiver avaliações
+      itemObjeto.nota_media = mapaMedias[item._id.toString()] || '0.0';
+      
+      return itemObjeto;
+    });
+
+    // Envia a lista completa e atualizada para o Frontend
+    res.json(conteudosComNotasReais);
   } catch (err) {
-    console.error('Erro ao buscar conteúdos:', err);
+    console.error('Erro ao buscar conteúdos com médias:', err);
     res.status(500).json({ error: 'Erro ao buscar conteúdos' });
   }
 });
